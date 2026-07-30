@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Toolman TKJ</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+          colors: {
+            brand: { 50: '#f0f9ff', 500: '#0ea5e9', 600: '#0284c7', 900: '#0c4a6e' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* STANDAR CETAK RESMI */
+    .print-only { display: none !important; }
+    @media print {
+      @page { size: A4 landscape; margin: 1cm !important; }
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      body { background: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
+      .bg-slate-900, .bg-slate-950 { background: white !important; border: none !important; box-shadow: none !important; color: black !important; padding: 0 !important; }
+      .print-dashboard-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 16px !important; align-items: start !important; margin-top: 10px !important; }
+      table { border-collapse: collapse !important; width: 100% !important; margin-top: 6px !important; margin-bottom: 12px !important; }
+      th, td { border: 1px solid #94a3b8 !important; color: black !important; padding: 5px 8px !important; font-size: 8.5pt !important; line-height: 1.3 !important; }
+      th { background-color: #0284c7 !important; color: #ffffff !important; font-weight: 700 !important; text-transform: uppercase !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      table tbody tr:nth-child(even) { background-color: #e0f2fe !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      table tbody tr:nth-child(odd) { background-color: #ffffff !important; }
+      table tfoot tr, table tfoot td { background-color: #f1f5f9 !important; color: #0f172a !important; font-weight: 800 !important; border-top: 2px solid #334155 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      span, div, tr, td, p, h1, h2, h3 { box-shadow: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-sky-500 selection:text-white flex overflow-x-hidden">
+
+  <aside id="app-sidebar" class="no-print w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 min-h-screen sticky top-0 h-screen z-30 transition-all duration-300">
+    <div>
+      <div class="p-5 border-b border-slate-800/80 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+            <i class="fa-solid fa-microchip text-lg"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-base tracking-wide text-white leading-tight">TOOLMAN <span class="text-sky-400">TKJ</span></h1>
+            <p class="text-xs text-slate-400">Inventory Manager</p>
+          </div>
+        </div>
+        <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition" title="Sembunyikan Menu">
+          <i class="fa-solid fa-bars-staggered text-base"></i>
+        </button>
+      </div>
+
+      <nav class="p-4 space-y-1.5">
+        <div class="px-3 py-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase">Menu Utama</div>
+        <button id="nav-dashboard" onclick="switchTab('dashboard')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all bg-sky-500/10 text-sky-400 border border-sky-500/20 shadow-sm"><i class="fa-solid fa-chart-pie w-5 text-center"></i><span>Dashboard</span></button>
+        <button id="nav-inventaris" onclick="switchTab('inventaris')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"><i class="fa-solid fa-boxes-stacked w-5 text-center"></i><span>Inventaris Barang</span></button>
+        <button id="nav-pc" onclick="switchTab('pc')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"><i class="fa-solid fa-desktop w-5 text-center"></i><span>Aset PC Lab</span></button>
+        <button id="nav-maintenance" onclick="switchTab('maintenance')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"><i class="fa-solid fa-wrench w-5 text-center"></i><span>Log Maintenance</span></button>
+      </nav>
+    </div>
+
+    <div class="p-4 border-t border-slate-800/80">
+      <div class="bg-slate-950/60 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
+        <div class="flex items-center gap-2.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span><span class="text-xs font-medium text-slate-300">Live Database</span></div>
+        <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono">GAS v1.0</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+    <header class="no-print h-16 border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-20 px-8 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button id="btn-show-sidebar" onclick="toggleSidebar()" class="hidden text-slate-400 hover:text-white p-2 -ml-2 rounded-lg hover:bg-slate-800 transition" title="Tampilkan Menu"><i class="fa-solid fa-bars text-lg"></i></button>
+        <h2 id="page-title" class="text-lg font-bold text-white tracking-tight">Dashboard Overview</h2>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="window.print()" class="flex items-center gap-2 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-lg shadow-emerald-500/10 transition active:scale-95"><i class="fa-solid fa-print"></i><span>Export Laporan</span></button>
+        <button onclick="loadAllData()" class="flex items-center gap-2 px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700/80 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700/60 transition active:scale-95"><i id="refresh-icon" class="fa-solid fa-rotate-right"></i><span>Refresh</span></button>
+      </div>
+    </header>
+
+    <main class="flex-1 p-5 lg:p-6 overflow-y-auto">
+      <div class="print-only mb-3 pb-2 border-b-2 border-black">
+        <h1 id="print-report-title" class="text-lg font-bold uppercase tracking-wide text-center">DASHBOARD MANAJEMEN INVENTARIS LAB TKJ</h1>
+        <div class="text-[10px] mt-1 text-black font-semibold flex justify-between">
+          <span>Tanggal Cetak: <span id="print-date"></span></span>
+          <span>Sistem Manajemen Inventaris & Aset TKJ</span>
+        </div>
+      </div>
+
+      <div id="loading-spinner" class="flex flex-col items-center justify-center py-20 gap-4">
+        <div class="w-10 h-10 border-4 border-sky-500/20 border-t-sky-500 rounded-full animate-spin"></div>
+        <p class="text-sm font-medium text-slate-400 animate-pulse">Menghubungkan ke Google Sheets...</p>
+      </div>
+
+      <div id="app-content" class="hidden space-y-6"></div>
+    </main>
+  </div>
+
+  <script>
+    let APP_STATE = {
+      summary: {},
+      data: { inventaris: [], asetPc: [], masterRuangan: [], masterKategori: [], maintenanceLog: [] },
+      currentTab: 'dashboard'
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const now = new Date();
+      const options = { day: 'numeric', month: 'long', year: 'numeric' };
+      if (document.getElementById('print-date')) {
+        document.getElementById('print-date').innerText = now.toLocaleDateString('id-ID', options);
+      }
+      loadAllData();
+    });
+
+    // FIX DASHBOARD NaN: Konversi angka yang lebih ketat, mengizinkan minus & desimal
+    function safeNumber(val) {
+      if (val === undefined || val === null || val === '') return 0;
+      const cleaned = String(val).replace(/[^0-9.-]/g, '');
+      const num = parseInt(cleaned, 10);
+      return isNaN(num) ? 0 : num;
+    }
+
+    // FIX ID TERKUNCI: Memperluas pencarian semua kemungkinan format header (termasuk yang berpotongan spasi)
+    function generateAutoId(dataList, strictPrefix) {
+      let maxNum = 0;
+      dataList.forEach(item => {
+        const val = String(
+          item['ID / KODE'] || item['ID / Kode'] || item.Kode_Aset || item.kode_aset || item.id_barang ||
+          item['ID PC']    || item.id_pc         || item.ID_PC     ||
+          item['ID Log']   || item.id_log        || item.ID_Log    || ''
+        ).trim();
+        const match = val.match(/(\d+)$/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxNum) maxNum = num;
+        }
+      });
+      const nextNum = String(maxNum + 1).padStart(4, '0');
+      return `${strictPrefix}${nextNum}`;
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('app-sidebar');
+      const btnShow = document.getElementById('btn-show-sidebar');
+      if (sidebar.classList.contains('-translate-x-full') || sidebar.classList.contains('hidden')) {
+        sidebar.classList.remove('-translate-x-full', 'hidden', 'w-0');
+        sidebar.classList.add('w-64');
+        btnShow.classList.add('hidden');
+      } else {
+        sidebar.classList.add('-translate-x-full', 'hidden', 'w-0');
+        sidebar.classList.remove('w-64');
+        btnShow.classList.remove('hidden');
+      }
+    }
+
+    // Timer untuk deteksi loading yang macet (timeout 30 detik)
+    let _loadTimer = null;
+
+    function showLoadError(pesanError) {
+      clearTimeout(_loadTimer);
+      document.getElementById('refresh-icon').classList.remove('fa-spin');
+      document.getElementById('loading-spinner').innerHTML = `
+        <div class="text-center space-y-3 py-10">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+            <i class="fa-solid fa-triangle-exclamation text-rose-400 text-xl"></i>
+          </div>
+          <p class="text-rose-400 font-bold text-sm">Gagal Memuat Data</p>
+          <p class="text-slate-500 text-xs max-w-xs mx-auto">${pesanError}</p>
+          <button onclick="loadAllData()" class="mt-2 px-5 py-2 bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold rounded-xl transition">
+            <i class="fa-solid fa-rotate-right mr-1"></i> Coba Lagi
+          </button>
+        </div>
+      `;
+    }
+
+    function loadAllData() {
+      // Reset tampilan spinner ke kondisi semula
+      document.getElementById('loading-spinner').innerHTML = `
+        <div class="w-10 h-10 border-4 border-sky-500/20 border-t-sky-500 rounded-full animate-spin"></div>
+        <p class="text-sm font-medium text-slate-400 animate-pulse">Menghubungkan ke Google Sheets...</p>
+      `;
+      document.getElementById('loading-spinner').classList.remove('hidden');
+      document.getElementById('app-content').classList.add('hidden');
+      document.getElementById('refresh-icon').classList.add('fa-spin');
+
+      // Timeout 30 detik — jika GAS tidak merespons, tampilkan error
+      clearTimeout(_loadTimer);
+      _loadTimer = setTimeout(function() {
+        showLoadError('Koneksi ke Google Sheets timeout (>30 detik). Periksa koneksi internet Anda atau coba lagi.');
+      }, 30000);
+
+      google.script.run
+        .withSuccessHandler(onDataSuccess)
+        .withFailureHandler(function(err) {
+          showLoadError('Error dari Google Apps Script: ' + (err.message || String(err)));
+        })
+        .getDashboardData();
+    }
+
+    function onDataSuccess(response) {
+      clearTimeout(_loadTimer);
+      document.getElementById('refresh-icon').classList.remove('fa-spin');
+      if (response && response.status === 'success') {
+        APP_STATE.summary = response.summary;
+        APP_STATE.data = response.data;
+        document.getElementById('loading-spinner').classList.add('hidden');
+        document.getElementById('app-content').classList.remove('hidden');
+        renderCurrentTab();
+      } else {
+        showLoadError('Server merespons dengan error: ' + (response ? response.message : 'Respons tidak valid'));
+      }
+    }
+
+    function switchTab(tabName) {
+      APP_STATE.currentTab = tabName;
+      ['dashboard', 'inventaris', 'pc', 'maintenance'].forEach(t => {
+        const btn = document.getElementById('nav-' + t);
+        btn.className = (t === tabName) 
+          ? "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium bg-sky-500/10 text-sky-400 border border-sky-500/20 shadow-sm"
+          : "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60";
+      });
+
+      const titleMap = {
+        'dashboard': 'DASHBOARD MANAJEMEN INVENTARIS LAB TKJ',
+        'inventaris': 'Manajemen Inventaris Barang TKJ',
+        'pc': 'Spesifikasi & Aset PC Lab',
+        'maintenance': 'Log Maintenance & Service'
+      };
+      
+      const printTitleMap = {
+        'dashboard': 'DASHBOARD MANAJEMEN INVENTARIS LAB TKJ',
+        'inventaris': 'LAPORAN DATA INVENTARIS BARANG & PERANGKAT TKJ',
+        'pc': 'LAPORAN SPESIFIKASI & ASET PC LAB TKJ',
+        'maintenance': 'LAPORAN RIWAYAT PEMELIHARAAN & TROUBLESHOOTING ASET'
+      };
+
+      document.getElementById('page-title').innerText = titleMap[tabName] || 'Dashboard Toolman';
+      if (document.getElementById('print-report-title')) {
+        document.getElementById('print-report-title').innerText = printTitleMap[tabName] || 'LAPORAN DATA INVENTARIS TKJ';
+      }
+
+      renderCurrentTab();
+    }
+
+    function renderCurrentTab() {
+      const container = document.getElementById('app-content');
+      if (APP_STATE.currentTab === 'dashboard') renderDashboard(container);
+      else if (APP_STATE.currentTab === 'inventaris') renderInventaris(container);
+      else if (APP_STATE.currentTab === 'pc') renderAsetPc(container);
+      else if (APP_STATE.currentTab === 'maintenance') renderMaintenanceLog(container);
+    }
+  </script>
+
+  <script>
+    // 1. DASHBOARD ANALITIS
+    function renderDashboard(container) {
+      const inv = APP_STATE.data.inventaris || [];
+      const pc = APP_STATE.data.asetPc || [];
+      const ruanganList = APP_STATE.data.masterRuangan || [];
+      const mapKategori = {};
+      const mapRuangan = {};
+
+      const totalVariasi = inv.length;
+      let totalUnit = 0;
+      let kBaik = 0; let kRingan = 0; let kBerat = 0;
+
+      inv.forEach(item => {
+        const qty = safeNumber(item.Stok || item.stok || item.STOK);
+        totalUnit += qty;
+        const knd = item.Kondisi || item.kondisi || '';
+        if (knd === 'Baik') kBaik += qty;
+        else if (knd === 'Rusak Ringan') kRingan += qty;
+        else if (knd === 'Rusak Berat' || knd === 'Afkir') kBerat += qty;
+        else kBaik += qty;
+
+        const kat = item.Kategori || item.kategori || 'Lainnya';
+        if (!mapKategori[kat]) mapKategori[kat] = { jenis: 0, qty: 0 };
+        mapKategori[kat].jenis += 1;
+        mapKategori[kat].qty += qty;
+
+        const rng = item.Ruangan || item.ruangan || 'Tanpa Ruangan';
+        if (!mapRuangan[rng]) mapRuangan[rng] = 0;
+        mapRuangan[rng] += qty;
+      });
+
+      totalUnit += pc.length;
+      pc.forEach(p => {
+        const knd = p.kondisi_pc || p.Kondisi_PC || '';
+        if (knd === 'Baik') kBaik += 1;
+        else if (knd === 'Rusak Ringan') kRingan += 1;
+        else kBerat += 1;
+
+        const rng = p.ruangan || p.Ruangan || 'Tanpa Ruangan';
+        if (!mapRuangan[rng]) mapRuangan[rng] = 0;
+        mapRuangan[rng] += 1;
+      });
+
+      const totalRuangan = ruanganList.length || 7;
+
+      container.innerHTML = `
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl"><div class="text-[11px] font-bold text-slate-400 uppercase">Total Variasi Barang</div><div class="text-2xl font-extrabold text-white mt-1">${totalVariasi}</div></div>
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl"><div class="text-[11px] font-bold text-slate-400 uppercase">Total Unit Keseluruhan</div><div class="text-2xl font-extrabold text-sky-400 mt-1">${totalUnit}</div></div>
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl"><div class="text-[11px] font-bold text-slate-400 uppercase">Kondisi Baik</div><div class="text-2xl font-extrabold text-emerald-400 mt-1">${kBaik}</div></div>
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl"><div class="text-[11px] font-bold text-slate-400 uppercase">Rusak Ringan</div><div class="text-2xl font-extrabold text-amber-400 mt-1">${kRingan}</div></div>
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl"><div class="text-[11px] font-bold text-slate-400 uppercase">Rusak Berat</div><div class="text-2xl font-extrabold text-rose-400 mt-1">${kBerat}</div></div>
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl"><div class="text-[11px] font-bold text-slate-400 uppercase">Total Ruangan / Lab</div><div class="text-2xl font-extrabold text-indigo-400 mt-1">${totalRuangan}</div></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-1 print-dashboard-grid">
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 overflow-hidden">
+            <h3 class="text-xs font-bold text-slate-200 uppercase text-center mb-3">Rekapitulasi Per Kategori Barang</h3>
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950/60 text-slate-400 uppercase text-[10px]"><tr><th class="p-2 text-center w-8">No</th><th class="p-2">Kategori Barang</th><th class="p-2 text-center">Jenis Item</th><th class="p-2 text-right">Total Qty</th><th class="p-2 text-right">% Qty</th></tr></thead>
+              <tbody class="divide-y divide-slate-800/60 font-medium">
+                ${Object.keys(mapKategori).map((kat, idx) => {
+                  const d = mapKategori[kat];
+                  const pct = totalUnit > 0 ? ((d.qty / totalUnit) * 100).toFixed(1) : "0.0";
+                  return `<tr><td class="p-2 text-center">${idx + 1}</td><td class="p-2 text-white">${kat}</td><td class="p-2 text-center">${d.jenis}</td><td class="p-2 text-right font-bold">${d.qty}</td><td class="p-2 text-right text-sky-400">${pct}%</td></tr>`;
+                }).join('')}
+              </tbody>
+              <tfoot class="bg-slate-950 font-bold"><tr><td colspan="2" class="p-2 text-white text-[10px]">TOTAL KESELURUHAN</td><td class="p-2 text-center">${totalVariasi}</td><td class="p-2 text-right text-sky-400">${totalUnit}</td><td class="p-2 text-right text-emerald-400">100%</td></tr></tfoot>
+            </table>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 overflow-hidden">
+            <h3 class="text-xs font-bold text-slate-200 uppercase text-center mb-3">Distribusi Barang Per Ruangan / Lab</h3>
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950/60 text-slate-400 uppercase text-[10px]"><tr><th class="p-2 text-center w-8">No</th><th class="p-2">Nama Ruangan</th><th class="p-2 text-right">Total Qty Unit</th><th class="p-2 text-right">% Distribusi</th></tr></thead>
+              <tbody class="divide-y divide-slate-800/60 font-medium">
+                ${Object.keys(mapRuangan).map((rng, idx) => {
+                  const qty = mapRuangan[rng];
+                  const pct = totalUnit > 0 ? ((qty / totalUnit) * 100).toFixed(1) : "0.0";
+                  return `<tr><td class="p-2 text-center">${idx + 1}</td><td class="p-2 text-white">${rng}</td><td class="p-2 text-right font-bold">${qty}</td><td class="p-2 text-right text-sky-400">${pct}%</td></tr>`;
+                }).join('')}
+              </tbody>
+              <tfoot class="bg-slate-950 font-bold"><tr><td colspan="2" class="p-2 text-white text-[10px]">TOTAL UNIT</td><td class="p-2 text-right text-sky-400">${totalUnit}</td><td class="p-2 text-right text-emerald-400">100%</td></tr></tfoot>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // 2. RENDER INVENTARIS BARANG
+    function renderInventaris(container) {
+      const ruanganList = ['Semua Ruangan', ...APP_STATE.data.masterRuangan.map(r => r.nama_ruangan || r.id_ruangan)];
+      
+      container.innerHTML = `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+          <div class="no-print flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+              <label class="text-xs font-bold text-slate-400 uppercase">Filter Ruangan:</label>
+              <select id="filter-ruangan-inv" onchange="filterTableInventaris()" class="bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs font-semibold text-white focus:outline-none focus:border-sky-500">
+                ${ruanganList.map(r => `<option value="${r}">${r}</option>`).join('')}
+              </select>
+            </div>
+
+            <div class="flex items-center gap-3 w-full md:w-auto">
+              <div class="relative flex-1 md:w-64">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                <input type="text" id="search-inv" onkeyup="filterTableInventaris()" placeholder="Cari merek, kode, atau nama..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500">
+              </div>
+              <button onclick="openModalCreateInv()" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-sky-500/20 transition shrink-0 flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> Tambah Barang</button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                <tr>
+                  <th class="p-2.5 text-center">No</th><th class="p-2.5">ID / Kode</th><th class="p-2.5">Kategori</th><th class="p-2.5">Nama Barang</th><th class="p-2.5">Merek</th><th class="p-2.5">Spesifikasi</th><th class="p-2.5">Ruangan</th><th class="p-2.5">Kondisi</th><th class="p-2.5 text-center">Stok</th><th class="p-2.5">Satuan</th><th class="p-2.5 text-center">Tahun Masuk</th><th class="p-2.5">Keterangan</th><th class="no-print p-2.5 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-inventaris" class="divide-y divide-slate-800/60 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      filterTableInventaris();
+    }
+
+    function filterTableInventaris() {
+      const filterRuangan = document.getElementById('filter-ruangan-inv').value;
+      const query = document.getElementById('search-inv').value.toLowerCase();
+      const tbody = document.getElementById('tbody-inventaris');
+      
+      const filtered = APP_STATE.data.inventaris.filter(item => {
+        const ruangan = item.Ruangan || item.ruangan || item.RUANGAN || '';
+        const kode = item['ID / KODE'] || item['ID / Kode'] || item.Kode_Aset || item.kode_aset || item.id_barang || item.ID_BARANG || '';
+        const nama = item.Nama_Barang || item.nama_barang || item.NAMA_BARANG || item.NAMA || '';
+        const merek = item.Merek || item.merek || item.MEREK || '';
+        const spek = item['Spesifikasi singkat'] || item.Spesifikasi || item.spesifikasi || item.SPESIFIKASI || '';
+        const kat = item.Kategori || item.kategori || item.KATEGORI || '';
+
+        const matchRuangan = (filterRuangan === 'Semua Ruangan') || (ruangan === filterRuangan);
+        const matchSearch = String(nama).toLowerCase().includes(query) || String(kode).toLowerCase().includes(query) || String(merek).toLowerCase().includes(query) || String(spek).toLowerCase().includes(query) || String(kat).toLowerCase().includes(query);
+        return matchRuangan && matchSearch;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="13" class="p-8 text-center text-slate-500">Tidak ada barang yang sesuai.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((item, index) => {
+        const kode = item['ID / KODE'] || item['ID / Kode'] || item.Kode_Aset || item.kode_aset || item.id_barang || item.ID_BARANG || '-';
+        const kat = item.Kategori || item.kategori || item.KATEGORI || '-';
+        const nama = item.Nama_Barang || item.nama_barang || item.NAMA_BARANG || item.NAMA || '-';
+        const merek = item.Merek || item.merek || item.MEREK || '-';
+        
+        // FIX BUG SPESIFIKASI: Header sheet = 'Spesifikasi singkat'
+        const spek = item['Spesifikasi singkat'] || item.Spesifikasi || item.spesifikasi || item.SPESIFIKASI || '-';
+        
+        const rng = item.Ruangan || item.ruangan || item.RUANGAN || '-';
+        const knd = item.Kondisi || item.kondisi || item.KONDISI || '-';
+        const stk = safeNumber(item.Stok || item.stok || item.STOK);
+        const sat = item.Satuan || item.satuan || item.SATUAN || '';
+        const thn = item.Tahun_Masuk || item['TAHUN MASUK'] || item.tahun_masuk || item.TAHUN_MASUK || item.Tahun || '-';
+        const ket = item.Keterangan || item.keterangan || item.KETERANGAN || '-';
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="p-2.5 text-center text-slate-400 font-bold">${index + 1}</td>
+            <td class="p-2.5 font-mono text-sky-400 font-bold whitespace-nowrap">${kode}</td>
+            <td class="p-2.5 text-slate-300 whitespace-nowrap">${kat}</td>
+            <td class="p-2.5 text-white font-semibold">${nama}</td>
+            <td class="p-2.5 text-slate-300 font-semibold">${merek}</td>
+            <td class="p-2.5 text-slate-400 max-w-xs truncate" title="${spek}">${spek}</td>
+            <td class="p-2.5 text-slate-300 whitespace-nowrap">${rng}</td>
+            <td class="p-2.5 whitespace-nowrap"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${knd === 'Baik' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}">${knd}</span></td>
+            <td class="p-2.5 text-white font-bold text-center">${stk}</td>
+            <td class="p-2.5 text-slate-400">${sat}</td>
+            <td class="p-2.5 text-center font-mono text-slate-300">${thn}</td>
+            <td class="p-2.5 text-slate-400 max-w-xs truncate" title="${ket}">${ket}</td>
+            <td class="no-print p-2.5 text-center whitespace-nowrap">
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="openModalEditInv(${index})" class="p-1 bg-slate-800 hover:bg-sky-500/20 text-sky-400 rounded-md" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                <button onclick="confirmDeleteInv('${kode}', '${nama.replace(/'/g, "\\'")}')" class="p-1 bg-slate-800 hover:bg-rose-500/20 text-rose-400 rounded-md" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 3. RENDER ASET PC LAB
+    function renderAsetPc(container) {
+      const ruanganList = ['Semua Ruangan', ...APP_STATE.data.masterRuangan.map(r => r.nama_ruangan || r.id_ruangan)];
+      
+      container.innerHTML = `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+          <div class="no-print flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+              <label class="text-xs font-bold text-slate-400 uppercase">Filter Ruangan:</label>
+              <select id="filter-ruangan-pc" onchange="filterTablePc()" class="bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs font-semibold text-white focus:outline-none focus:border-sky-500">
+                ${ruanganList.map(r => `<option value="${r}">${r}</option>`).join('')}
+              </select>
+            </div>
+
+            <div class="flex items-center gap-3 w-full md:w-auto">
+              <div class="relative flex-1 md:w-64">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                <input type="text" id="search-pc" onkeyup="filterTablePc()" placeholder="Cari ID PC, prosesor, atau IP..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500">
+              </div>
+              <button onclick="openModalCreatePc()" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-sky-500/20 transition shrink-0 flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> Tambah PC</button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                <tr><th class="p-2.5 text-center">No</th><th class="p-2.5">ID PC</th><th class="p-2.5">Ruangan / Lab</th><th class="p-2.5">Processor</th><th class="p-2.5">RAM & Storage</th><th class="p-2.5">IP Address</th><th class="p-2.5">Kondisi</th><th class="no-print p-2.5 text-center">Aksi</th></tr>
+              </thead>
+              <tbody id="tbody-pc" class="divide-y divide-slate-800/60 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      filterTablePc();
+    }
+
+    function filterTablePc() {
+      const filterRuangan = document.getElementById('filter-ruangan-pc').value;
+      const query = document.getElementById('search-pc').value.toLowerCase();
+      const tbody = document.getElementById('tbody-pc');
+
+      const filtered = APP_STATE.data.asetPc.filter(pc => {
+        const ruangan = pc.ruangan || pc.Ruangan || '';
+        const idpc = pc.id_pc || pc.ID_PC || '';
+        const proc = pc.processor || pc.Processor || '';
+        const ip = pc.ip_address || pc.IP_Address || '';
+
+        const matchRuangan = (filterRuangan === 'Semua Ruangan') || (ruangan === filterRuangan);
+        const matchSearch = String(idpc).toLowerCase().includes(query) || String(proc).toLowerCase().includes(query) || String(ip).toLowerCase().includes(query);
+        return matchRuangan && matchSearch;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500">Tidak ada PC yang sesuai filter.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((pc, idx) => {
+        const idpc = pc.id_pc || pc.ID_PC || '-';
+        const rng = pc.ruangan || pc.Ruangan || '-';
+        const proc = pc.processor || pc.Processor || '-';
+        const ram = pc.ram || pc.RAM || '-';
+        const str = pc.storage || pc.Storage || '-';
+        const ip = pc.ip_address || pc.IP_Address || '-';
+        const knd = pc.kondisi_pc || pc.Kondisi_PC || 'Baik';
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="p-2.5 text-center text-slate-400 font-bold">${idx + 1}</td>
+            <td class="p-2.5 font-mono text-sky-400 font-bold whitespace-nowrap">${idpc}</td>
+            <td class="p-2.5 text-white font-semibold">${rng}</td>
+            <td class="p-2.5 text-slate-300">${proc}</td>
+            <td class="p-2.5 text-slate-400">${ram}, ${str}</td>
+            <td class="p-2.5 font-mono text-slate-300">${ip}</td>
+            <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${knd === 'Baik' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}">${knd}</span></td>
+            <td class="no-print p-2.5 text-center whitespace-nowrap">
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="cetakQR('${idpc}')" class="p-1 bg-slate-800 hover:bg-emerald-500/20 text-emerald-400 rounded-md" title="Cetak Label QR"><i class="fa-solid fa-qrcode"></i></button>
+                <button onclick="openModalEditPc(${idx})" class="p-1 bg-slate-800 hover:bg-sky-500/20 text-sky-400 rounded-md" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                <button onclick="confirmDeletePc('${idpc}')" class="p-1 bg-slate-800 hover:bg-rose-500/20 text-rose-400 rounded-md" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 4. RENDER LOG MAINTENANCE
+    function renderMaintenanceLog(container) {
+      const logs = APP_STATE.data.maintenanceLog || [];
+      container.innerHTML = `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+          <div class="no-print flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <h3 class="text-base font-bold text-white">Riwayat Pemeliharaan & Troubleshooting (${logs.length} catatan)</h3>
+            <button onclick="openModalCreateMaint()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition shrink-0 flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> Tambah Log Maintenance</button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                <tr><th class="p-2.5 text-center">No</th><th class="p-2.5">ID Log</th><th class="p-2.5">Tanggal</th><th class="p-2.5">ID Aset</th><th class="p-2.5">Keluhan Kerusakan</th><th class="p-2.5">Tindakan Perbaikan</th><th class="p-2.5">Status Akhir</th><th class="no-print p-2.5 text-center">Aksi</th></tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60 font-medium">
+                ${logs.map((l, idx) => {
+                  const idlog = l.id_log || l.ID_Log || '-';
+                  const tgl = String(l.tanggal_service || l.Tanggal_Service || '').substring(0,10);
+                  const aset = l.id_pc_barang || l.ID_PC_Barang || l.id_pc || l.id_barang || '-';
+                  const keluhan = l.keluhan_kerusakan || l.Keluhan_Kerusakan || '-';
+                  const tindakan = l.tindakan_perbaikan || l.Tindakan_Perbaikan || '-';
+                  const st = l.status_akhir || l.Status_Akhir || 'Baik';
+
+                  return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                      <td class="p-2.5 text-center text-slate-400 font-bold">${idx + 1}</td>
+                      <td class="p-2.5 font-mono text-sky-400 font-bold whitespace-nowrap">${idlog}</td>
+                      <td class="p-2.5 text-slate-400 whitespace-nowrap">${tgl}</td>
+                      <td class="p-2.5 font-mono font-bold text-white whitespace-nowrap">${aset}</td>
+                      <td class="p-2.5 text-amber-400">${keluhan}</td>
+                      <td class="p-2.5 text-slate-300">${tindakan}</td>
+                      <td class="p-2.5 whitespace-nowrap"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${st === 'Baik' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-800 text-slate-300 border-slate-700'}">${st}</span></td>
+                      <td class="no-print p-2.5 text-center whitespace-nowrap">
+                        <div class="flex items-center justify-center gap-1.5">
+                          <button onclick="openModalEditMaint(${idx})" class="p-1 bg-slate-800 hover:bg-sky-500/20 text-sky-400 rounded-md" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                          <button onclick="confirmDeleteMaint('${idlog}')" class="p-1 bg-slate-800 hover:bg-rose-500/20 text-rose-400 rounded-md" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join('') || '<tr><td colspan="8" class="p-8 text-center text-slate-500">Belum ada riwayat perbaikan.</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+  </script>
+
+  <div id="modal-inventaris" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl">
+      <div class="flex items-center justify-between p-5 border-b border-slate-800 bg-slate-950/50">
+        <h3 id="modal-inv-title" class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-boxes-stacked text-sky-400"></i><span>Tambah Barang Baru</span></h3>
+        <button onclick="closeModal('modal-inventaris')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="form-inventaris" onsubmit="handleSaveOrUpdateInv(event)" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="inv-mode" value="create"><input type="hidden" id="inv-kode-lama" value="">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-300 mb-1.5">ID / Kode Aset (Auto Terkunci) *</label>
+            <input type="text" id="inv-kode" name="kode_aset" readonly tabindex="-1" required class="w-full bg-slate-950/80 border border-sky-500/40 rounded-xl px-3.5 py-2.5 text-sky-400 font-mono font-bold cursor-not-allowed pointer-events-none select-none">
+          </div>
+          <div><label class="block font-bold text-slate-300 mb-1.5">Kategori *</label><select id="inv-kategori" name="kategori" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></select></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="block font-bold text-slate-300 mb-1.5">Nama Barang *</label><input type="text" id="inv-nama" name="nama_barang" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></div>
+          <div><label class="block font-bold text-slate-300 mb-1.5">Merek / Brand *</label><input type="text" id="inv-merek" name="merek" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></div>
+        </div>
+        <div><label class="block font-bold text-slate-300 mb-1.5">Spesifikasi Singkat</label><input type="text" id="inv-spek" name="spesifikasi" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></div>
+        <div class="grid grid-cols-3 gap-4">
+          <div><label class="block font-bold text-slate-300 mb-1.5">Ruangan *</label><select id="inv-ruangan" name="ruangan" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></select></div>
+          <div><label class="block font-bold text-slate-300 mb-1.5">Kondisi</label><select id="inv-kondisi" name="kondisi" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Berat">Rusak Berat</option><option value="Afkir">Afkir</option></select></div>
+          <div><label class="block font-bold text-slate-300 mb-1.5">Tahun Masuk *</label><input type="number" id="inv-tahun" name="tahun_masuk" value="2026" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="block font-bold text-slate-300 mb-1.5">Stok</label><input type="number" id="inv-stok" name="stok" value="1" min="0" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></div>
+          <div><label class="block font-bold text-slate-300 mb-1.5">Satuan</label><select id="inv-satuan" name="satuan" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"><option value="Unit">Unit</option><option value="Pcs">Pcs</option><option value="Roll">Roll</option><option value="Meter">Meter</option><option value="Set">Set</option></select></div>
+        </div>
+        <div><label class="block font-bold text-slate-300 mb-1.5">Keterangan / Posisi Simpan</label><input type="text" id="inv-keterangan" name="keterangan" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></div>
+        <div class="pt-4 flex justify-end gap-3 border-t border-slate-800"><button type="button" onclick="closeModal('modal-inventaris')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl">Batal</button><button type="submit" id="btn-submit-inv" class="px-5 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20"><span>Simpan Data</span></button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-pc" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+      <div class="flex items-center justify-between p-5 border-b border-slate-800 bg-slate-950/50">
+        <h3 id="modal-pc-title" class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-desktop text-sky-400"></i><span>Tambah Komputer Lab</span></h3>
+        <button onclick="closeModal('modal-pc')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="form-pc" onsubmit="handleSaveOrUpdatePc(event)" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="pc-mode" value="create"><input type="hidden" id="pc-id-lama" value="">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-300 mb-1.5">ID PC (Bebas Diubah) *</label>
+            <input type="text" id="pc-id" name="id_pc" placeholder="e.g. PC-L1-01" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-sky-500 font-mono font-bold">
+          </div>
+          <div><label class="block font-bold text-slate-300 mb-1.5">Ruangan / Lab *</label><select id="pc-ruangan" name="ruangan" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></select></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="block font-bold text-slate-300 mb-1.5">Processor</label><input type="text" id="pc-proc" name="processor" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></div>
+          <div><label class="block font-bold text-slate-300 mb-1.5">RAM</label><input type="text" id="pc-ram" name="ram" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="block font-bold text-slate-300 mb-1.5">Storage / SSD</label><input type="text" id="pc-storage" name="storage" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></div>
+          <div><label class="block font-bold text-slate-300 mb-1.5">IP Address</label><input type="text" id="pc-ip" name="ip_address" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="block font-bold text-slate-300 mb-1.5">Kondisi PC</label><select id="pc-kondisi" name="kondisi_pc" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Berat">Rusak Berat</option></select></div>
+          <div><label class="block font-bold text-slate-300 mb-1.5">Tahun Masuk</label><input type="number" id="pc-tahun" name="tahun_masuk" value="2026" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></div>
+        </div>
+        <div class="pt-4 flex justify-end gap-3 border-t border-slate-800"><button type="button" onclick="closeModal('modal-pc')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl">Batal</button><button type="submit" id="btn-submit-pc" class="px-5 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20"><span>Simpan Data</span></button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-maintenance" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+      <div class="flex items-center justify-between p-5 border-b border-slate-800 bg-slate-950/50">
+        <h3 id="modal-maint-title" class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-wrench text-emerald-400"></i><span>Tambah Log Maintenance</span></h3>
+        <button onclick="closeModal('modal-maintenance')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="form-maintenance" onsubmit="handleSaveOrUpdateMaint(event)" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="maint-mode" value="create"><input type="hidden" id="maint-id-lama" value="">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-300 mb-1.5">ID Log (Bebas Diubah) *</label>
+            <input type="text" id="maint-id" name="id_log" placeholder="e.g. LOG-001" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-emerald-500 font-mono font-bold">
+          </div>
+          <div><label class="block font-bold text-slate-300 mb-1.5">Tanggal Service *</label><input type="date" id="maint-tgl" name="tanggal_service" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></div>
+        </div>
+        <div><label class="block font-bold text-slate-300 mb-1.5">Pilih Aset (PC atau Barang) *</label><select id="maint-aset" name="id_pc_barang" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></select></div>
+        <div><label class="block font-bold text-slate-300 mb-1.5">Keluhan Kerusakan / Masalah *</label><textarea id="maint-keluhan" name="keluhan_kerusakan" rows="2" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></textarea></div>
+        <div><label class="block font-bold text-slate-300 mb-1.5">Tindakan Perbaikan *</label><textarea id="maint-tindakan" name="tindakan_perbaikan" rows="2" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"></textarea></div>
+        <div><label class="block font-bold text-slate-300 mb-1.5">Status Akhir Setelah Perbaikan</label><select id="maint-status" name="status_akhir" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white"><option value="Baik">Baik (Siap Pakai)</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Berat">Rusak Berat</option><option value="Afkir">Afkir</option></select></div>
+        <div class="pt-4 flex justify-end gap-3 border-t border-slate-800"><button type="button" onclick="closeModal('modal-maintenance')" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl">Batal</button><button type="submit" id="btn-submit-maint" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20"><span>Simpan Log</span></button></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    // ==========================================
+    // INVENTARIS BARANG HANDLERS
+    // ==========================================
+    function openModalCreateInv() {
+      document.getElementById('inv-mode').value = 'create';
+      document.getElementById('modal-inv-title').innerHTML = `<i class="fa-solid fa-plus-circle text-sky-400"></i><span>Tambah Barang Baru</span>`;
+      document.getElementById('form-inventaris').reset();
+      
+      document.getElementById('inv-kode').value = generateAutoId(APP_STATE.data.inventaris, 'TKJ-INV-');
+      document.getElementById('inv-kategori').innerHTML = (APP_STATE.data.masterKategori || []).map(k => `<option value="${k.nama_kategori || k.id_kategori}">${k.nama_kategori || k.id_kategori}</option>`).join('');
+      document.getElementById('inv-ruangan').innerHTML = (APP_STATE.data.masterRuangan || []).map(r => `<option value="${r.nama_ruangan || r.id_ruangan}">${r.nama_ruangan || r.id_ruangan}</option>`).join('');
+      document.getElementById('modal-inventaris').classList.remove('hidden');
+    }
+
+    function openModalEditInv(idx) {
+      const item = APP_STATE.data.inventaris[idx];
+      if (!item) return;
+
+      document.getElementById('inv-mode').value = 'update';
+      const oldId = item['ID / KODE'] || item['ID / Kode'] || item.Kode_Aset || item.kode_aset || item.id_barang || item.ID_BARANG || '';
+      document.getElementById('inv-kode-lama').value = oldId;
+      document.getElementById('modal-inv-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-sky-400"></i><span>Edit Data Barang</span>`;
+      
+      document.getElementById('inv-kategori').innerHTML = (APP_STATE.data.masterKategori || []).map(k => `<option value="${k.nama_kategori || k.id_kategori}">${k.nama_kategori || k.id_kategori}</option>`).join('');
+      document.getElementById('inv-ruangan').innerHTML = (APP_STATE.data.masterRuangan || []).map(r => `<option value="${r.nama_ruangan || r.id_ruangan}">${r.nama_ruangan || r.id_ruangan}</option>`).join('');
+      
+      document.getElementById('inv-kode').value = oldId;
+      document.getElementById('inv-kategori').value = item.Kategori || item.kategori || item.KATEGORI || '';
+      document.getElementById('inv-nama').value = item.Nama_Barang || item.nama_barang || item.NAMA_BARANG || item.NAMA || '';
+      document.getElementById('inv-merek').value = item.Merek || item.merek || item.MEREK || '';
+      
+      // FIX BUG SPESIFIKASI FORM EDIT
+      document.getElementById('inv-spek').value = item['Spesifikasi singkat'] || item.Spesifikasi || item.spesifikasi || item.SPESIFIKASI || '';
+      
+      document.getElementById('inv-ruangan').value = item.Ruangan || item.ruangan || item.RUANGAN || '';
+      document.getElementById('inv-kondisi').value = item.Kondisi || item.kondisi || item.KONDISI || 'Baik';
+      document.getElementById('inv-stok').value = safeNumber(item.Stok || item.stok || item.STOK);
+      document.getElementById('inv-satuan').value = item.Satuan || item.satuan || item.SATUAN || 'Unit';
+      document.getElementById('inv-tahun').value = item.Tahun_Masuk || item['TAHUN MASUK'] || item.tahun_masuk || item.TAHUN_MASUK || item.Tahun || 2026;
+      document.getElementById('inv-keterangan').value = item.Keterangan || item.keterangan || item.KETERANGAN || '';
+      document.getElementById('modal-inventaris').classList.remove('hidden');
+    }
+
+    function handleSaveOrUpdateInv(e) {
+      e.preventDefault();
+      const form = e.target;
+      const formObj = Object.fromEntries(new FormData(form).entries());
+      const mode = document.getElementById('inv-mode').value;
+      const btn = document.getElementById('btn-submit-inv');
+      btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
+
+      const fn = (mode === 'update') ? 'updateInventaris' : 'saveNewInventaris';
+      if (mode === 'update') formObj.kode_aset_lama = document.getElementById('inv-kode-lama').value;
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btn.disabled = false; btn.innerHTML = `<span>Simpan Data</span>`;
+          if (res.status === 'success') { closeModal('modal-inventaris'); form.reset(); loadAllData(); }
+          else alert("Gagal dari Server: " + res.message);
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false; btn.innerHTML = `<span>Simpan Data</span>`;
+          alert("Error Komunikasi Google: " + err.message);
+        })[fn](formObj);
+    }
+
+    function confirmDeleteInv(kodeAset, namaBarang) {
+      if (confirm(`Yakin ingin menghapus barang:\n"[${kodeAset}] ${namaBarang}"?`)) {
+        google.script.run.withSuccessHandler(res => {
+          if (res.status === 'success') loadAllData(); else alert("Gagal: " + res.message);
+        }).deleteInventaris(kodeAset);
+      }
+    }
+
+    // ==========================================
+    // PC LAB HANDLERS
+    // ==========================================
+    function openModalCreatePc() {
+      document.getElementById('pc-mode').value = 'create';
+      document.getElementById('modal-pc-title').innerHTML = `<i class="fa-solid fa-desktop text-sky-400"></i><span>Tambah Komputer Lab</span>`;
+      document.getElementById('form-pc').reset();
+      
+      document.getElementById('pc-id').value = generateAutoId(APP_STATE.data.asetPc, 'PC-L1-');
+      document.getElementById('pc-ruangan').innerHTML = (APP_STATE.data.masterRuangan || []).map(r => `<option value="${r.nama_ruangan || r.id_ruangan}">${r.nama_ruangan || r.id_ruangan}</option>`).join('');
+      document.getElementById('modal-pc').classList.remove('hidden');
+    }
+
+    function openModalEditPc(idx) {
+      const item = APP_STATE.data.asetPc[idx];
+      if (!item) return;
+
+      document.getElementById('pc-mode').value = 'update';
+      const oldId = item.id_pc || item.ID_PC || '';
+      document.getElementById('pc-id-lama').value = oldId;
+      document.getElementById('modal-pc-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-sky-400"></i><span>Edit Data PC Lab</span>`;
+      document.getElementById('pc-ruangan').innerHTML = (APP_STATE.data.masterRuangan || []).map(r => `<option value="${r.nama_ruangan || r.id_ruangan}">${r.nama_ruangan || r.id_ruangan}</option>`).join('');
+      
+      document.getElementById('pc-id').value = oldId;
+      document.getElementById('pc-ruangan').value = item.ruangan || item.Ruangan || '';
+      document.getElementById('pc-proc').value = item.processor || item.Processor || '';
+      document.getElementById('pc-ram').value = item.ram || item.RAM || '';
+      document.getElementById('pc-storage').value = item.storage || item.Storage || '';
+      document.getElementById('pc-ip').value = item.ip_address || item.IP_Address || '';
+      document.getElementById('pc-kondisi').value = item.kondisi_pc || item.Kondisi_PC || 'Baik';
+      document.getElementById('pc-tahun').value = item.tahun_masuk || item.Tahun_Masuk || 2026;
+      document.getElementById('modal-pc').classList.remove('hidden');
+    }
+
+    function handleSaveOrUpdatePc(e) {
+      e.preventDefault();
+      const formObj = Object.fromEntries(new FormData(e.target).entries());
+      const mode = document.getElementById('pc-mode').value;
+      const btn = document.getElementById('btn-submit-pc');
+      btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
+
+      const fn = (mode === 'update') ? 'updatePc' : 'saveNewPc';
+      if (mode === 'update') formObj.id_pc_lama = document.getElementById('pc-id-lama').value;
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btn.disabled = false; btn.innerHTML = `<span>Simpan Data</span>`;
+          if (res.status === 'success') { closeModal('modal-pc'); e.target.reset(); loadAllData(); }
+          else alert("Gagal dari Server: " + res.message);
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false; btn.innerHTML = `<span>Simpan Data</span>`;
+          alert("Error Komunikasi Google: " + err.message + "\n\nPastikan Anda sudah melakukan New Deployment!");
+        })[fn](formObj);
+    }
+
+    function confirmDeletePc(idPc) {
+      if (confirm(`Yakin ingin menghapus PC:\n"[${idPc}]"?`)) {
+        google.script.run.withSuccessHandler(res => {
+          if (res.status === 'success') loadAllData(); else alert("Gagal: " + res.message);
+        }).deletePc(idPc);
+      }
+    }
+
+    // ==========================================
+    // MAINTENANCE LOG HANDLERS
+    // ==========================================
+    function openModalCreateMaint() {
+      document.getElementById('maint-mode').value = 'create';
+      document.getElementById('modal-maint-title').innerHTML = `<i class="fa-solid fa-wrench text-emerald-400"></i><span>Tambah Log Maintenance</span>`;
+      document.getElementById('form-maintenance').reset();
+      
+      document.getElementById('maint-id').value = generateAutoId(APP_STATE.data.maintenanceLog, 'LOG-');
+      document.getElementById('maint-tgl').value = new Date().toISOString().split('T')[0];
+      
+      const daftarAset = [
+        ...(APP_STATE.data.asetPc || []).map(pc => pc.id_pc || pc.ID_PC),
+        ...(APP_STATE.data.inventaris || []).map(inv => inv['ID / KODE'] || inv['ID / Kode'] || inv.Kode_Aset || inv.kode_aset || inv.id_barang)
+      ];
+      document.getElementById('maint-aset').innerHTML = daftarAset.map(id => `<option value="${id}">${id}</option>`).join('');
+      document.getElementById('modal-maintenance').classList.remove('hidden');
+    }
+
+    function openModalEditMaint(idx) {
+      const item = APP_STATE.data.maintenanceLog[idx];
+      if (!item) return;
+
+      document.getElementById('maint-mode').value = 'update';
+      const oldId = item.id_log || item.ID_Log || '';
+      document.getElementById('maint-id-lama').value = oldId;
+      document.getElementById('modal-maint-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-emerald-400"></i><span>Edit Log Maintenance</span>`;
+      
+      const daftarAset = [
+        ...(APP_STATE.data.asetPc || []).map(pc => pc.id_pc || pc.ID_PC),
+        ...(APP_STATE.data.inventaris || []).map(inv => inv['ID / KODE'] || inv['ID / Kode'] || inv.Kode_Aset || inv.kode_aset || inv.id_barang)
+      ];
+      document.getElementById('maint-aset').innerHTML = daftarAset.map(id => `<option value="${id}">${id}</option>`).join('');
+
+      document.getElementById('maint-id').value = oldId;
+      document.getElementById('maint-tgl').value = String(item.tanggal_service || item.Tanggal_Service || '').substring(0,10);
+      document.getElementById('maint-aset').value = item.id_pc_barang || item.ID_PC_Barang || item.id_pc || item.ID_PC || '';
+      document.getElementById('maint-keluhan').value = item.keluhan_kerusakan || item.Keluhan_Kerusakan || '';
+      document.getElementById('maint-tindakan').value = item.tindakan_perbaikan || item.Tindakan_Perbaikan || '';
+      document.getElementById('maint-status').value = item.status_akhir || item.Status_Akhir || 'Baik';
+      document.getElementById('modal-maintenance').classList.remove('hidden');
+    }
+
+    function handleSaveOrUpdateMaint(e) {
+      e.preventDefault();
+      const formObj = Object.fromEntries(new FormData(e.target).entries());
+      const mode = document.getElementById('maint-mode').value;
+      const btn = document.getElementById('btn-submit-maint');
+      btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
+
+      const fn = (mode === 'update') ? 'updateMaintenanceLog' : 'saveNewMaintenanceLog';
+      if (mode === 'update') formObj.id_log_lama = document.getElementById('maint-id-lama').value;
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btn.disabled = false; btn.innerHTML = `<span>Simpan Log</span>`;
+          if (res.status === 'success') { closeModal('modal-maintenance'); e.target.reset(); loadAllData(); }
+          else alert("Gagal dari Server: " + res.message);
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false; btn.innerHTML = `<span>Simpan Log</span>`;
+          alert("Error Komunikasi Google: " + err.message);
+        })[fn](formObj);
+    }
+
+    function confirmDeleteMaint(idLog) {
+      if (confirm(`Yakin ingin menghapus catatan log:\n"[${idLog}]"?`)) {
+        google.script.run.withSuccessHandler(res => {
+          if (res.status === 'success') loadAllData(); else alert("Gagal: " + res.message);
+        }).deleteMaintenanceLog(idLog);
+      }
+    }
+
+    // APP_URL diinjeksi langsung dari backend saat template dirender (lebih andal dari async call)
+    const APP_URL = "<?= typeof appUrl !== 'undefined' ? appUrl : '' ?>";
+
+    function cetakQR(idPc) {
+      if (!APP_URL) {
+        alert("Sinkronisasi URL sedang berlangsung, coba lagi dalam 2-3 detik.");
+        return;
+      }
+
+      // BYPASS ANDROID DRIVE: QR di-encode ke GitHub Pages redirect
+      // Saat di-scan Android, github.io dibuka di browser (bukan Drive app)
+      // Halaman GitHub Pages lalu melakukan JavaScript redirect ke GAS
+      const GITHUB_REDIRECT = "https://stkjn.github.io/r/";
+      const finalUrl = GITHUB_REDIRECT + "?id=" + encodeURIComponent(idPc);
+
+      const qrImageSrc = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=" + encodeURIComponent(finalUrl);
+
+      const pw = window.open('', '_blank', 'width=420,height=560');
+      if (!pw) { alert("Pop-up diblokir browser. Izinkan pop-up untuk halaman ini lalu coba lagi."); return; }
+      pw.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Cetak Label QR — ${idPc}</title>
+            <style>
+              * { box-sizing: border-box; margin: 0; padding: 0; }
+              body {
+                font-family: 'Segoe UI', sans-serif;
+                background: #f8fafc;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                padding: 24px;
+                gap: 16px;
+              }
+              .label-box {
+                border: 2px solid #0ea5e9;
+                background: #fff;
+                padding: 20px 24px;
+                text-align: center;
+                width: 280px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(14,165,233,0.15);
+              }
+              .school { font-size: 10px; color: #64748b; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 6px; }
+              h2 { font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -.02em; }
+              img { width: 220px; height: 220px; display: block; margin: 0 auto; }
+              .hint { font-size: 11px; color: #64748b; margin-top: 12px; line-height: 1.5; }
+              .url-badge { font-size: 9px; color: #94a3b8; margin-top: 6px; word-break: break-all; }
+              .btn-print {
+                padding: 10px 28px;
+                background: #0ea5e9;
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+                font-weight: 700;
+                font-size: 14px;
+                cursor: pointer;
+              }
+              .btn-print:hover { background: #0284c7; }
+              @media print {
+                body { background: white; padding: 0; }
+                .btn-print { display: none; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="label-box">
+              <p class="school">Lab TKJ — Inventaris Aset</p>
+              <h2>ID: ${idPc}</h2>
+              <img src="${qrImageSrc}" alt="QR ${idPc}" onload="document.getElementById('hint-text').style.display='block'">
+              <p class="hint" id="hint-text" style="display:none;">📷 Scan untuk melihat spesifikasi<br>&amp; riwayat perawatan aset ini</p>
+              <p class="url-badge">${finalUrl}</p>
+            </div>
+            <button class="btn-print" onclick="window.print()">🖨️ Cetak Label Sekarang</button>
+          </body>
+        </html>
+      `);
+      pw.document.close();
+    }
+  </script>
+</body>
+</html>
