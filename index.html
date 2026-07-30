@@ -2,101 +2,73 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Membuka Informasi Aset...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Info Aset Lab TKJ</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0f172a;
-      color: #e2e8f0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
+    #loading {
+      position: fixed; inset: 0; background: #0f172a;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 16px; z-index: 10; transition: opacity 0.4s;
     }
-    .card {
-      text-align: center;
-      max-width: 320px;
-      width: 100%;
-    }
+    #loading.hide { opacity: 0; pointer-events: none; }
     .spinner {
-      width: 48px;
-      height: 48px;
-      border: 4px solid rgba(14,165,233,0.2);
-      border-top-color: #0ea5e9;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 20px;
+      width: 44px; height: 44px;
+      border: 4px solid rgba(14,165,233,0.2); border-top-color: #0ea5e9;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    h1 { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-bottom: 8px; }
-    p  { font-size: 13px; color: #64748b; }
-    .badge {
-      display: inline-block;
-      margin-top: 16px;
-      background: rgba(14,165,233,0.1);
-      border: 1px solid rgba(14,165,233,0.3);
-      color: #38bdf8;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 12px;
-      border-radius: 999px;
-      letter-spacing: 0.05em;
+    #loading p { font-family: system-ui, sans-serif; font-size: 14px; color: #64748b; }
+    #loading b { color: #38bdf8; display: block; font-size: 13px; margin-top: 4px; text-align: center; }
+    #error-box {
+      display: none; position: fixed; inset: 0; background: #0f172a;
+      align-items: center; justify-content: center; flex-direction: column;
+      gap: 12px; padding: 32px; text-align: center; font-family: system-ui, sans-serif;
     }
-    .fallback {
-      margin-top: 24px;
-      font-size: 12px;
-      color: #475569;
-    }
-    .fallback a {
-      color: #38bdf8;
-      text-decoration: underline;
-    }
+    #error-box.show { display: flex; }
+    #error-box p { font-size: 14px; color: #94a3b8; }
+    #error-box a { color: #38bdf8; font-size: 13px; }
+    iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: none; background: #0f172a; }
   </style>
 </head>
 <body>
-  <div class="card">
+
+  <div id="loading">
     <div class="spinner"></div>
-    <h1>Membuka Informasi Aset</h1>
-    <p>Anda akan diarahkan ke halaman detail aset secara otomatis...</p>
-    <div class="badge" id="asset-id">Memuat ID...</div>
-    <p class="fallback">Jika tidak otomatis terbuka, <a id="manual-link" href="#">klik di sini</a>.</p>
+    <div><p>Memuat informasi aset...</p><b id="id-label"></b></div>
   </div>
 
+  <div id="error-box">
+    <p>ID aset tidak ditemukan.<br>Pastikan QR code dicetak dengan benar.</p>
+    <a href="https://stkjn.github.io/r/">Kembali</a>
+  </div>
+
+  <iframe id="frame" title="Info Aset" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+
   <script>
-    // ================================================================
-    // KONFIGURASI — ganti nilai GAS_URL jika Web App di-redeploy
-    // ================================================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwRcAtSONsbnvUb-RKYckW_XzJXEnFMQdRBzDmJL9POcmGFSWLvc2LLtWuzV6NrmGVitA/exec";
-    // ================================================================
+    var GAS_URL = 'https://script.google.com/macros/s/AKfycbwRcAtSONsbnvUb-RKYckW_XzJXEnFMQdRBzDmJL9POcmGFSWLvc2LLtWuzV6NrmGVitA/exec';
+    var params  = new URLSearchParams(window.location.search);
+    var assetId = params.get('id') || '';
+    var loading = document.getElementById('loading');
+    var frame   = document.getElementById('frame');
+    var errBox  = document.getElementById('error-box');
 
-    // Baca parameter ?id= dari URL halaman ini
-    const params  = new URLSearchParams(window.location.search);
-    const assetId = params.get('id') || '';
-
-    // Tampilkan ID di badge
-    document.getElementById('asset-id').textContent = assetId ? '🔍 ID: ' + assetId : '⚠️ ID tidak ditemukan';
-
-    // Bangun URL tujuan
-    const targetUrl = GAS_URL + "?page=detail&id=" + encodeURIComponent(assetId);
-
-    // Pasang link fallback manual
-    document.getElementById('manual-link').href = targetUrl;
-
-    // Redirect via JavaScript setelah 800ms
-    // (JavaScript redirect menghindari Android Drive interception)
-    if (assetId) {
-      setTimeout(function() {
-        window.location.href = targetUrl;
-      }, 800);
+    if (!assetId) {
+      loading.style.display = 'none';
+      errBox.classList.add('show');
     } else {
-      document.querySelector('h1').textContent = 'ID Aset Tidak Ditemukan';
-      document.querySelector('p').textContent  = 'QR Code ini tidak menyertakan ID aset yang valid.';
-      document.querySelector('.spinner').style.display = 'none';
+      document.getElementById('id-label').textContent = 'ID: ' + assetId;
+      frame.src = GAS_URL + '?page=detail&id=' + encodeURIComponent(assetId);
+      frame.addEventListener('load', function () {
+        loading.classList.add('hide');
+        setTimeout(function () { loading.style.display = 'none'; }, 450);
+      });
+      setTimeout(function () {
+        loading.classList.add('hide');
+        setTimeout(function () { loading.style.display = 'none'; }, 450);
+      }, 20000);
     }
   </script>
+
 </body>
 </html>
-
